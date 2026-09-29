@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saathi Call - Working Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Fixed Phone Chassis Container */
+        .phone-body {
+            width: 310px;
+            background: #111827;
+            border-radius: 36px;
+            padding: 18px 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            border: 4px solid #374151;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .phone-screen {
+            background: #e0f2fe;
+            border-radius: 16px;
+            height: 165px;
+            border: 2px solid #0284c7;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+        }
+
+        /* Responsive Keypad Grid */
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: 14px;
+        }
+
+        .key-btn {
+            background: #1f2937;
+            color: #f3f4f6;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            height: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            user-select: none;
+        }
+
+        .key-btn:active {
+            background: #374151;
+            transform: scale(0.96);
+        }
+
+        .key-btn.call-btn {
+            background: #16a34a;
+            color: white;
+            border-color: #15803d;
+        }
+
+        .key-btn.end-btn {
+            background: #dc2626;
+            color: white;
+            border-color: #b91c1c;
+        }
+
+        .key-btn.nav-btn {
+            background: #374151;
+            color: white;
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="bg-emerald-700 text-white shadow-md mb-8">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="flex items-center gap-3">
+                <div class="bg-white text-emerald-700 p-2 rounded-xl text-xl font-bold">
+                    <i class="fa-solid fa-phone-volume"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide">Saathi Call - Working Prototype</h1>
+                    <p class="text-xs text-emerald-100">PCCE Hackathon Prototype · CodeMode</p>
+                </div>
+            </div>
+            <span class="bg-emerald-800 text-emerald-200 text-xs px-3 py-1 rounded-full font-medium border border-emerald-600">
+                <i class="fa-solid fa-shield-halved mr-1"></i> Human-in-the-Loop AI
+            </span>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4">
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-300 mb-6 bg-white rounded-xl p-1 shadow-sm overflow-x-auto">
+            <button id="tab-btn-1" onclick="switchTab(1)" class="tab-btn flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition text-emerald-700 bg-emerald-50 border-b-2 border-emerald-600">
+                1. Relative / Pharmacy Setup
+            </button>
+            <button id="tab-btn-2" onclick="switchTab(2)" class="tab-btn flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition text-slate-600 hover:bg-slate-50">
+                2. Feature Phone Call Simulator
+            </button>
+            <button id="tab-btn-3" onclick="switchTab(3)" class="tab-btn flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition text-slate-600 hover:bg-slate-50">
+                3. Family Monitoring Dashboard
+            </button>
+        </div>
+
+        <!-- TAB 1: RELATIVE / PHARMACY SETUP -->
+        <section id="tab-1" class="tab-content">
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Prescription Upload & AI Processing -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-camera text-emerald-600"></i> Step 1: Photograph Prescription
+                    </h2>
+                    <p class="text-xs text-slate-500 mb-4">Upload a handwritten or printed prescription photo to let OCR & AI draft the schedule.</p>
+                    
+                    <div class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center bg-slate-50 hover:bg-emerald-50/50 transition cursor-pointer" onclick="triggerMockUpload()">
+                        <img id="prescription-preview" src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=60" class="h-32 mx-auto object-cover rounded-lg shadow-sm mb-3" alt="Prescription Sample">
+                        <p id="upload-status" class="text-xs font-medium text-emerald-700 bg-emerald-100 inline-block px-3 py-1 rounded-full">
+                            <i class="fa-solid fa-circle-check"></i> Sample Prescription Loaded
+                        </p>
+                        <p class="text-xs text-slate-400 mt-2">Click to reload or re-scan photo</p>
+                    </div>
+
+                    <div id="ai-processing" class="hidden mt-4 bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center gap-3">
+                        <i class="fa-solid fa-spinner animate-spin text-amber-600 text-lg"></i>
+                        <span class="text-xs text-amber-800 font-medium">AI extracting medicine names, dosage, and times...</span>
+                    </div>
+                </div>
+
+                <!-- Human Verification Step -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-user-check text-emerald-600"></i> Step 2: Human Verification
+                            </h2>
+                            <span class="bg-amber-100 text-amber-800 text-[10px] uppercase font-bold px-2 py-0.5 rounded border border-amber-300">Safety Guardrail</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-4">AI drafts, but a human MUST confirm every item before reminders are set active.</p>
+
+                        <div class="space-y-3">
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                                <div>
+                                    <input type="text" value="Paracetamol 500mg" class="font-semibold text-slate-800 bg-transparent text-sm focus:outline-none border-b border-transparent focus:border-emerald-500">
+                                    <div class="text-xs text-slate-500">After Meals · 08:00 AM & 08:00 PM</div>
+                                </div>
+                                <span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded font-medium">Confirmed</span>
+                            </div>
+
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                                <div>
+                                    <input type="text" value="Amlodipine 5mg" class="font-semibold text-slate-800 bg-transparent text-sm focus:outline-none border-b border-transparent focus:border-emerald-500">
+                                    <div class="text-xs text-slate-500">Morning · 09:00 AM</div>
+                                </div>
+                                <span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded font-medium">Confirmed</span>
+                            </div>
+                        </div>
+
+                        <!-- Language Choice for Elder -->
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Elder's Preferred Voice Language</label>
+                            <select id="elder-lang" class="w-full text-xs p-2 border border-slate-300 rounded-lg bg-slate-50 focus:ring-2 focus:ring-emerald-500">
+                                <option value="en-IN">English (India)</option>
+                                <option value="hi-IN" selected>Hindi (हिंदी)</option>
+                                <option value="mr-IN">Marathi (मराठी)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="saveScheduleAndNext()" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-sm flex items-center justify-center gap-2">
+                        <span>Save & Activate Voice Reminders</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: FEATURE PHONE CALL SIMULATOR -->
+        <section id="tab-2" class="tab-content hidden">
+            <div class="grid md:grid-cols-2 gap-8 items-start">
+                
+                <!-- Controller Panel -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-tower-cell text-emerald-600"></i> Telephony Trigger
+                    </h2>
+                    <p class="text-xs text-slate-500 mb-4">Simulate an automated outgoing voice call dispatched to the elder's keypad phone.</p>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6 space-y-3">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-500">Target Elder Phone:</span>
+                            <span class="font-mono font-semibold">+91 9822X XXXXX</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-500">Scheduled Time:</span>
+                            <span class="font-semibold text-emerald-700">09:00 AM (Due Now)</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-500">Medicine Alert:</span>
+                            <span class="font-semibold text-slate-800">Amlodipine 5mg</span>
+                        </div>
+                    </div>
+
+                    <button id="trigger-call-btn" onclick="triggerIncomingCall()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl text-sm transition shadow-md flex items-center justify-center gap-2 pulse-ring">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>Simulate Incoming Call to Elder</span>
+                    </button>
+
+                    <div class="mt-6 text-xs text-slate-500 bg-slate-100 p-3 rounded-lg border border-slate-200">
+                        <p class="font-semibold text-slate-700 mb-1"><i class="fa-solid fa-circle-info"></i> How the call works:</p>
+                        <ul class="list-disc list-inside space-y-1 text-[11px]">
+                            <li>Plays automated audio prompt in chosen language</li>
+                            <li><strong>Press 1:</strong> Confirm medicine taken</li>
+                            <li><strong>Press 2:</strong> Remind in 15 mins</li>
+                            <li><strong>Press 3:</strong> SOS Emergency alert to family</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Keypad Phone UI Mockup -->
+                <div class="flex justify-center">
+                    <div class="phone-body">
+                        <!-- Phone Speaker -->
+                        <div class="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-3"></div>
+
+                        <!-- Phone Screen -->
+                        <div class="phone-screen">
+                            <div class="flex justify-between items-center text-[10px] text-slate-600 font-semibold border-b border-slate-200/60 pb-1">
+                                <span><i class="fa-solid fa-signal"></i> GSM</span>
+                                <span>12:00 PM</span>
+                                <span><i class="fa-solid fa-battery-three-quarters"></i></span>
+                            </div>
+
+                            <div id="phone-screen-content" class="text-center my-auto">
+                                <div id="idle-screen">
+                                    <div class="text-2xl font-bold text-slate-700">12:00</div>
+                                    <div class="text-[10px] text-slate-500">Saathi Standby</div>
+                                </div>
+
+                                <div id="calling-screen" class="hidden">
+                                    <div class="text-xs text-emerald-700 font-bold animate-pulse mb-1">INCOMING CALL...</div>
+                                    <div class="text-sm font-extrabold text-slate-800">Saathi Care</div>
+                                    <div class="text-[10px] text-slate-500 mt-1">+91 8000-SAATHI</div>
+                                </div>
+
+                                <div id="active-call-screen" class="hidden">
+                                    <div class="text-[10px] text-emerald-600 font-semibold mb-1">CALL CONNECTED</div>
+                                    <div id="speech-status" class="text-xs font-bold text-slate-800 leading-tight">"Namaste, please take Amlodipine 5mg..."</div>
+                                    <div class="text-[9px] text-slate-500 mt-2">Press 1, 2 or 3</div>
+                                </div>
+                            </div>
+
+                            <!-- Screen Footer Softkeys -->
+                            <div class="flex justify-between text-[9px] font-bold text-slate-500 border-t border-slate-200/60 pt-1">
+                                <span id="softkey-left">Menu</span>
+                                <span id="softkey-right">Contacts</span>
+                            </div>
+                        </div>
+
+                        <!-- Keypad Area -->
+                        <div class="keypad-grid">
+                            <!-- Row 1: Action Keys -->
+                            <button class="key-btn call-btn" onclick="answerCall()">
+                                <i class="fa-solid fa-phone text-xs"></i>
+                            </button>
+                            <button class="key-btn nav-btn">
+                                <i class="fa-solid fa-sort text-xs"></i>
+                            </button>
+                            <button class="key-btn end-btn" onclick="endCall()">
+                                <i class="fa-solid fa-phone-slash text-xs"></i>
+                            </button>
+
+                            <!-- Row 2: 1 2 3 -->
+                            <button class="key-btn" onclick="pressKey('1')">
+                                <span class="font-bold text-sm text-emerald-400">1</span>
+                                <span class="text-[8px] text-slate-400">TAKEN</span>
+                            </button>
+                            <button class="key-btn" onclick="pressKey('2')">
+                                <span class="font-bold text-sm">2</span>
+                                <span class="text-[8px] text-slate-400">SNOOZE</span>
+                            </button>
+                            <button class="key-btn" onclick="pressKey('3')">
+                                <span class="font-bold text-sm text-red-400">3</span>
+                                <span class="text-[8px] text-slate-400">SOS</span>
+                            </button>
+
+                            <!-- Row 3: 4 5 6 -->
+                            <button class="key-btn" onclick="pressKey('4')">
+                                <span class="font-bold text-xs">4</span>
+                                <span class="text-[7px] text-slate-500">GHI</span>
+                            </button>
+                            <button class="key-btn" onclick="pressKey('5')">
+                                <span class="font-bold text-xs">5</span>
+                                <span class="text-[7px] text-slate-500">JKL</span>
+                            </button>
+                            <button class="key-btn" onclick="pressKey('6')">
+                                <span class="font-bold text-xs">6</span>
+                                <span class="text-[7px] text-slate-500">MNO</span>
+                            </button>
+
+                            <!-- Row 4: 7 8 9 -->
+                            <button class="key-btn" onclick="pressKey('7')">
+                                <span class="font-bold text-xs">7</span>
+                                <span class="text-[7px] text-slate-500">PQRS</span>
+                            </button>
+                            <button class="key-btn" onclick="pressKey('8')">
+                                <span class="font-bold text-xs">8</span>
+                                <span class="text-[7px] text-slate-500">TUV</span>
+                            </button>
+                            <button class="key-btn" onclick="pressKey('9')">
+                                <span class="font-bold text-xs">9</span>
+                                <span class="text-[7px] text-slate-500">WXYZ</span>
+                            </button>
+
+                            <!-- Row 5: * 0 # -->
+                            <button class="key-btn" onclick="pressKey('*')">
+                                <span class="font-bold text-xs">*</span>
+                            </button>
+                            <button class="key-btn" onclick="pressKey('0')">
+                                <span class="font-bold text-xs">0</span>
+                            </button>
+                            <button class="key-btn" onclick="pressKey('#')">
+                                <span class="font-bold text-xs">#</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: FAMILY MONITORING DASHBOARD -->
+        <section id="tab-3" class="tab-content hidden">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-heart-pulse text-red-500"></i> Family Caregiver Loop
+                        </h2>
+                        <p class="text-xs text-slate-500">Real-time status alerts sent to distant family members when calls complete or are missed.</p>
+                    </div>
+                    <button onclick="clearLogs()" class="text-xs text-slate-500 hover:text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg self-start sm:self-auto">
+                        Clear Log History
+                    </button>
+                </div>
+
+                <!-- Event Feed -->
+                <div class="space-y-3" id="log-feed">
+                    <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-3">
+                        <div class="bg-emerald-600 text-white p-2 rounded-lg text-xs mt-0.5">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-xs font-bold text-emerald-900">Medicine Intake Confirmed</h4>
+                                <span class="text-[10px] text-emerald-700">Today, 08:02 AM</span>
+                            </div>
+                            <p class="text-xs text-emerald-800 mt-0.5">Elder pressed key [1] for Paracetamol 500mg.</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-3">
+                        <div class="bg-slate-400 text-white p-2 rounded-lg text-xs mt-0.5">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-xs font-bold text-slate-800">System Initialization</h4>
+                                <span class="text-[10px] text-slate-500">Today, 07:30 AM</span>
+                            </div>
+                            <p class="text-xs text-slate-600 mt-0.5">Schedule verified by relative and loaded into automated telephony dispatch queue.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let callState = 'IDLE';
+
+        function switchTab(tabNum) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-emerald-700', 'bg-emerald-50', 'border-b-2', 'border-emerald-600');
+                btn.classList.add('text-slate-600');
+            });
+
+            document.getElementById(`tab-${tabNum}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabNum}`);
+            activeBtn.classList.add('text-emerald-700', 'bg-emerald-50', 'border-b-2', 'border-emerald-600');
+            activeBtn.classList.remove('text-slate-600');
+        }
+
+        function triggerMockUpload() {
+            const status = document.getElementById('upload-status');
+            const processing = document.getElementById('ai-processing');
+            
+            processing.classList.remove('hidden');
+            status.className = "text-xs font-medium text-amber-700 bg-amber-100 inline-block px-3 py-1 rounded-full";
+            status.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Processing Photo...';
+
+            setTimeout(() => {
+                processing.classList.add('hidden');
+                status.className = "text-xs font-medium text-emerald-700 bg-emerald-100 inline-block px-3 py-1 rounded-full";
+                status.innerHTML = '<i class="fa-solid fa-circle-check"></i> Prescription Extracted!';
+            }, 1200);
+        }
+
+        function saveScheduleAndNext() {
+            alert('Schedule verified and saved! Navigating to phone simulator.');
+            switchTab(2);
+        }
+
+        function triggerIncomingCall() {
+            if (callState !== 'IDLE') return;
+            callState = 'RINGING';
+
+            document.getElementById('idle-screen').classList.add('hidden');
+            document.getElementById('calling-screen').classList.remove('hidden');
+            document.getElementById('softkey-left').innerText = "Answer";
+            document.getElementById('softkey-right').innerText = "Reject";
+
+            playRingtone();
+        }
+
+        function answerCall() {
+            if (callState !== 'RINGING') return;
+            callState = 'IN_CALL';
+
+            document.getElementById('calling-screen').classList.add('hidden');
+            document.getElementById('active-call-screen').classList.remove('hidden');
+            document.getElementById('softkey-left').innerText = "";
+            document.getElementById('softkey-right').innerText = "End";
+
+            const lang = document.getElementById('elder-lang').value;
+            let msg = "Namaste. Please take Amlodipine 5 milligram now. Press 1 if taken, Press 2 to snooze, or Press 3 for emergency.";
+            
+            if (lang === 'hi-IN') {
+                msg = "नमस्ते। कृपया अपनी अमलोडिपाइन 5mg दवा लें। दवा लेने के बाद 1 दबाएं। 15 मिनट बाद के लिए 2 दबाएं। emergency सहायता के लिए 3 दबाएं।";
+            } else if (lang === 'mr-IN') {
+                msg = "नमस्कार. कृपया तुमची आमलोडिपिन 5mg औषध घ्या. औषध घेतल्यास 1 दाबा. मदतीसाठी 3 दाबा.";
+            }
+
+            document.getElementById('speech-status').innerText = msg;
+            speakText(msg, lang);
+        }
+
+        function endCall() {
+            window.speechSynthesis.cancel();
+            callState = 'IDLE';
+
+            document.getElementById('active-call-screen').classList.add('hidden');
+            document.getElementById('calling-screen').classList.add('hidden');
+            document.getElementById('idle-screen').classList.remove('hidden');
+            document.getElementById('softkey-left').innerText = "Menu";
+            document.getElementById('softkey-right').innerText = "Contacts";
+        }
+
+        function pressKey(key) {
+            if (callState !== 'IN_CALL') return;
+
+            window.speechSynthesis.cancel();
+
+            if (key === '1') {
+                speakText("Thank you. Response recorded.", "en-IN");
+                addDashboardLog("CONFIRMED", "Elder pressed [1]. Medicine taken successfully.");
+                setTimeout(endCall, 2000);
+            } else if (key === '2') {
+                speakText("Reminder snoozed for 15 minutes.", "en-IN");
+                addDashboardLog("SNOOZED", "Elder pressed [2]. Snoozed reminder for 15 mins.");
+                setTimeout(endCall, 2000);
+            } else if (key === '3') {
+                speakText("Emergency alert sent to family members immediately.", "en-IN");
+                addDashboardLog("EMERGENCY", "CRITICAL: Elder pressed [3] (SOS Key). Family notified via WhatsApp/SMS!");
+                setTimeout(endCall, 2500);
+            }
+        }
+
+        function speakText(text, lang) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang || 'en-IN';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function playRingtone() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 1.2);
+            } catch (e) {
+                console.log("AudioContext blocked or not supported");
+            }
+        }
+
+        function addDashboardLog(type, message) {
+            const feed = document.getElementById('log-feed');
+            const timeStr = "Just now";
+            
+            let bgClass = "bg-emerald-50 border-emerald-200";
+            let iconClass = "bg-emerald-600 fa-check";
+            let textClass = "text-emerald-900";
+
+            if (type === "SNOOZED") {
+                bgClass = "bg-amber-50 border-amber-200";
+                iconClass = "bg-amber-600 fa-clock";
+                textClass = "text-amber-900";
+            } else if (type === "EMERGENCY") {
+                bgClass = "bg-red-50 border-red-200 animate-pulse";
+                iconClass = "bg-red-600 fa-triangle-exclamation";
+                textClass = "text-red-900";
+            }
+
+            const itemHTML = `
+                <div class="p-4 ${bgClass} border rounded-xl flex items-start gap-3">
+                    <div class="${iconClass} text-white p-2 rounded-lg text-xs mt-0.5">
+                        <i class="fa-solid"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs font-bold ${textClass}">${type} ALERT</h4>
+                            <span class="text-[10px] text-slate-500">${timeStr}</span>
+                        </div>
+                        <p class="text-xs ${textClass} mt-0.5">${message}</p>
+                    </div>
+                </div>
+            `;
+
+            feed.insertAdjacentHTML('afterbegin', itemHTML);
+        }
+
+        function clearLogs() {
+            document.getElementById('log-feed').innerHTML = `
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs text-slate-400">
+                    Log history cleared.
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
